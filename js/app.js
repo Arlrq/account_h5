@@ -295,6 +295,11 @@
     renderChart(); // 主题色变量变化后重绘
   });
 
+  // 是否微信内置浏览器
+  function isWeChat() {
+    return /micromessenger/i.test(navigator.userAgent || '');
+  }
+
   /* ---------- 导出 Excel（可选月份，每 sheet 含 SUM 公式总计） ---------- */
   function getMonthsWithData() {
     var map = {};
@@ -344,15 +349,25 @@
       XLSX.utils.book_append_sheet(wb, buildMonthSheet(k), m + '月份');
     });
     var fname = '记账本_' + todayStr() + '.xlsx';
-    XLSX.writeFile(wb, fname);
-    toast('已导出 ' + fname);
+    try {
+      XLSX.writeFile(wb, fname);
+      if (isWeChat()) {
+        // 微信内置浏览器可能拦截/无法保存文件，不应提示“已导出”
+        toast('文件已生成，但微信可能拦截下载，请在浏览器打开本页后导出');
+      } else {
+        toast('已导出 ' + fname);
+      }
+    } catch (e) {
+      toast('导出失败：' + ((e && e.message) ? e.message : '未知错误'));
+    }
   }
 
-  // 月份选择弹窗（可任选任意月份，含无数据月份→导出空模板）
+  // 月份选择弹窗（可任选任意月份、支持多选，含无数据月份→导出空模板）
   var exportModal = $('exportModal');
   var exportMonthGrid = $('exportMonthGrid');
   var expYearLabel = $('expYearLabel');
   var exportYear = +todayStr().split('-')[0]; // 默认当前年
+  var exportSelected = {}; // { 'YYYY-MM': true }
 
   function openExportModal() {
     if (typeof XLSX === 'undefined') { toast('导出组件未加载'); return; }
@@ -371,17 +386,21 @@
     for (var m = 1; m <= 12; m++) {
       var k = exportYear + '-' + pad2(m);
       var btn = document.createElement('button');
-      btn.className = 'month-cell ' + (hasData[k] ? 'has-data' : 'no-data');
+      var cls = 'month-cell ' + (hasData[k] ? 'has-data' : 'no-data');
+      if (exportSelected[k]) cls += ' selected';
+      btn.className = cls;
       var label = m + '月';
       if (hasData[k]) {
         var net = netOfMonth(k);
         label += '<span class="m-net">' + (net < 0 ? '' : '+') + fmtMoney(net) + '</span>';
       }
+      if (exportSelected[k]) label += '<span class="m-net">✓</span>';
       btn.innerHTML = label;
       (function (kk) {
         btn.addEventListener('click', function () {
-          closeExportModal();
-          exportMonths([kk]);
+          if (exportSelected[kk]) delete exportSelected[kk];
+          else exportSelected[kk] = true;
+          renderExportGrid();
         });
       })(k);
       exportMonthGrid.appendChild(btn);
@@ -393,11 +412,12 @@
   $('exportCancel').addEventListener('click', closeExportModal);
   $('expPrevYear').addEventListener('click', function () { exportYear--; renderExportGrid(); });
   $('expNextYear').addEventListener('click', function () { exportYear++; renderExportGrid(); });
-  $('exportAllBtn').addEventListener('click', function () {
+  $('exportConfirm').addEventListener('click', function () {
+    var keys = Object.keys(exportSelected).sort();
     closeExportModal();
-    var months = getMonthsWithData();
-    if (!months.length) { toast('还没有数据可导出'); return; }
-    exportMonths(months);
+    if (!keys.length) { toast('请先选择至少一个月份'); return; }
+    exportMonths(keys);
+    exportSelected = {};
   });
 
   // 窗口尺寸变化时重绘图表，避免宽度错位
@@ -419,5 +439,15 @@
     dateInput.value = todayStr();
     setSign('+');
     renderAll();
+
+    // 微信内置浏览器提示
+    if (isWeChat()) {
+      var wt = document.getElementById('wechatTip');
+      if (wt) {
+        wt.hidden = false;
+        var wtc = document.getElementById('wechatTipClose');
+        if (wtc) wtc.addEventListener('click', function () { wt.hidden = true; });
+      }
+    }
   })();
 })();

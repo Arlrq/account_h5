@@ -289,6 +289,8 @@ html, body {
 .month-cell.no-data { color: var(--text-soft); }
 .month-cell:active { transform: scale(.98); }
 .month-cell .m-net { font-size: 11px; color: var(--text-soft); }
+.month-cell.selected { background: var(--primary); color: #fff; border-color: var(--primary); }
+.month-cell.selected .m-net { color: rgba(255,255,255,.9); }
 .modal-foot { display: flex; gap: 10px; }
 .modal-btn {
   flex: 1; height: 44px;
@@ -300,6 +302,20 @@ html, body {
   cursor: pointer;
 }
 .modal-btn.primary { background: var(--primary); color: #fff; border: none; }
+
+/* 微信内置浏览器提示条 */
+.wechat-tip {
+  display: flex; align-items: center; gap: 8px;
+  background: #fff7e6; color: #8a5a00;
+  border-bottom: 1px solid #ffe1a8;
+  padding: 10px 14px; font-size: 13px; line-height: 1.4;
+}
+.wechat-tip[hidden] { display: none; }
+.wechat-tip-close {
+  flex: none; border: none; background: transparent; color: inherit;
+  font-size: 18px; line-height: 1; cursor: pointer; padding: 0 4px;
+}
+html[data-theme="dark"] .wechat-tip { background: #3a2c12; color: #ffd98a; border-color: #5a451f; }
 
 /* Toast */
 .toast {

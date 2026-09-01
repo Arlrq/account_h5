@@ -8,6 +8,10 @@
   <link rel="stylesheet" href="css/style.css" />
 </head>
 <body>
+  <div id="wechatTip" class="wechat-tip" hidden>
+    <span>⚠️ 微信内置浏览器可能无法下载文件，请点击右上角「···」选择「在浏览器打开」后再使用导出功能</span>
+    <button id="wechatTipClose" class="wechat-tip-close" aria-label="关闭">×</button>
+  </div>
   <header class="app-header">
     <div class="brand">
       <span class="brand-logo">📒</span>
@@ -89,7 +93,7 @@
   <div id="exportModal" class="modal" hidden>
     <div class="modal-mask" id="exportMask"></div>
     <div class="modal-card">
-      <div class="modal-title">选择导出的月份</div>
+      <div class="modal-title">选择导出的月份（可多选）</div>
       <div class="export-year-nav">
         <button id="expPrevYear" class="round-btn" aria-label="上一年">‹</button>
         <div id="expYearLabel" class="month-label">2026 年</div>
@@ -97,7 +101,7 @@
       </div>
       <div id="exportMonthGrid" class="month-grid"></div>
       <div class="modal-foot">
-        <button id="exportAllBtn" class="modal-btn primary">导出全部有数据的月份</button>
+        <button id="exportConfirm" class="modal-btn primary">确定</button>
         <button id="exportCancel" class="modal-btn">取消</button>
       </div>
     </div>
