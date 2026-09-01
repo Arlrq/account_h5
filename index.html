@@ -85,6 +85,19 @@
     数据仅保存在本机浏览器（localStorage），不上传服务器 · 可随时导出 Excel 备份
   </footer>
 
+  <!-- 导出月份选择 -->
+  <div id="exportModal" class="modal" hidden>
+    <div class="modal-mask" id="exportMask"></div>
+    <div class="modal-card">
+      <div class="modal-title">选择导出的月份</div>
+      <div id="exportMonthList" class="modal-list"></div>
+      <div class="modal-foot">
+        <button id="exportAllBtn" class="modal-btn primary">导出全部月份</button>
+        <button id="exportCancel" class="modal-btn">取消</button>
+      </div>
+    </div>
+  </div>
+
   <div id="toast" class="toast"></div>
 
   <script src="vendor/xlsx.full.min.js"></script>

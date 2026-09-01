@@ -295,41 +295,88 @@
     renderChart(); // 主题色变量变化后重绘
   });
 
-  /* ---------- 导出 Excel（多 sheet，仿原表结构） ---------- */
-  exportBtn.addEventListener('click', function () {
-    if (!records.length) { toast('还没有数据可导出'); return; }
-    if (typeof XLSX === 'undefined') { toast('导出组件未加载'); return; }
+  /* ---------- 导出 Excel（可选月份，每 sheet 含 SUM 公式总计） ---------- */
+  function getMonthsWithData() {
+    var map = {};
+    records.forEach(function (r) { map[monthKeyOf(r.date)] = true; });
+    return Object.keys(map).sort();
+  }
+  function netOfMonth(k) {
+    var s = 0;
+    records.forEach(function (r) { if (monthKeyOf(r.date) === k) s += r.amount; });
+    return s;
+  }
 
-    // 按月份聚合（每天净合计）
-    var byMonth = {};
+  // 构建某个月的 sheet（金额列 C 用 SUM 公式做合计）
+  function buildMonthSheet(k) {
+    var p = k.split('-');
+    var y = +p[0], m = +p[1];
+    var dim = daysInMonth(k);
+    var perDay = {};
     records.forEach(function (r) {
-      var k = monthKeyOf(r.date);
-      (byMonth[k] = byMonth[k] || {});
-      byMonth[k][r.date] = (byMonth[k][r.date] || 0) + r.amount;
+      if (monthKeyOf(r.date) !== k) return;
+      perDay[r.date] = (perDay[r.date] || 0) + r.amount;
     });
 
+    var rows = [['月份', '天数', '金额']];
+    for (var d = 1; d <= dim; d++) {
+      var ds = y + '-' + pad2(m) + '-' + pad2(d);
+      var val = perDay[ds];
+      if (val != null) val = Math.round(val * 100) / 100;
+      rows.push([d === 1 ? m : '', d + '号', (val == null ? '' : val)]);
+    }
+    rows.push(['总计', '', '']); // 占位，确保总计行在 sheet 范围内
+    var ws = XLSX.utils.aoa_to_sheet(rows);
+    // 总计行：用真正的 SUM 公式（Excel/WPS 打开即自动计算）
+    var totalRow = dim + 2; // 表头1行 + dim天 + 总计
+    var total = Math.round(netOfMonth(k) * 100) / 100;
+    ws['C' + totalRow] = { f: 'SUM(C2:C' + (dim + 1) + ')', t: 'n', v: total };
+    ws['!cols'] = [{ wch: 8 }, { wch: 8 }, { wch: 14 }];
+    return ws;
+  }
+
+  function exportMonths(list) {
+    if (!list.length) { toast('没有可导出的数据'); return; }
+    if (typeof XLSX === 'undefined') { toast('导出组件未加载'); return; }
     var wb = XLSX.utils.book_new();
-    Object.keys(byMonth).sort().forEach(function (k) {
-      var p = k.split('-');
-      var y = +p[0], m = +p[1];
-      var dim = daysInMonth(k);
-      var rows = [['月份', '天数', '金额']];
-      var total = 0;
-      for (var d = 1; d <= dim; d++) {
-        var ds = y + '-' + pad2(m) + '-' + pad2(d);
-        var val = byMonth[k][ds];
-        rows.push([d === 1 ? m : '', d + '号', (val == null ? '' : Math.round(val * 100) / 100)]);
-        if (val != null) total += val;
-      }
-      rows.push(['总计', '', Math.round(total * 100) / 100]);
-      var ws = XLSX.utils.aoa_to_sheet(rows);
-      ws['!cols'] = [{ wch: 8 }, { wch: 8 }, { wch: 14 }];
-      XLSX.utils.book_append_sheet(wb, ws, m + '月份');
+    list.forEach(function (k) {
+      var m = +k.split('-')[1];
+      XLSX.utils.book_append_sheet(wb, buildMonthSheet(k), m + '月份');
     });
-
     var fname = '记账本_' + todayStr() + '.xlsx';
     XLSX.writeFile(wb, fname);
     toast('已导出 ' + fname);
+  }
+
+  // 月份选择弹窗
+  var exportModal = $('exportModal');
+  var exportMonthList = $('exportMonthList');
+  function openExportModal() {
+    var months = getMonthsWithData();
+    if (!months.length) { toast('还没有数据可导出'); return; }
+    exportMonthList.innerHTML = '';
+    months.forEach(function (k) {
+      var net = netOfMonth(k);
+      var btn = document.createElement('button');
+      btn.className = 'modal-month';
+      btn.innerHTML = '<span>' + monthLabelOf(k) + '</span>' +
+        '<span class="m-net">' + (net < 0 ? '' : '+') + fmtMoney(net) + '</span>';
+      btn.addEventListener('click', function () {
+        closeExportModal();
+        exportMonths([k]);
+      });
+      exportMonthList.appendChild(btn);
+    });
+    exportModal.hidden = false;
+  }
+  function closeExportModal() { exportModal.hidden = true; }
+
+  exportBtn.addEventListener('click', openExportModal);
+  $('exportMask').addEventListener('click', closeExportModal);
+  $('exportCancel').addEventListener('click', closeExportModal);
+  $('exportAllBtn').addEventListener('click', function () {
+    closeExportModal();
+    exportMonths(getMonthsWithData());
   });
 
   // 窗口尺寸变化时重绘图表，避免宽度错位
