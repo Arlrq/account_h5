@@ -90,9 +90,14 @@
     <div class="modal-mask" id="exportMask"></div>
     <div class="modal-card">
       <div class="modal-title">选择导出的月份</div>
-      <div id="exportMonthList" class="modal-list"></div>
+      <div class="export-year-nav">
+        <button id="expPrevYear" class="round-btn" aria-label="上一年">‹</button>
+        <div id="expYearLabel" class="month-label">2026 年</div>
+        <button id="expNextYear" class="round-btn" aria-label="下一年">›</button>
+      </div>
+      <div id="exportMonthGrid" class="month-grid"></div>
       <div class="modal-foot">
-        <button id="exportAllBtn" class="modal-btn primary">导出全部月份</button>
+        <button id="exportAllBtn" class="modal-btn primary">导出全部有数据的月份</button>
         <button id="exportCancel" class="modal-btn">取消</button>
       </div>
     </div>

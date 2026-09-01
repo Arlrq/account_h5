@@ -348,35 +348,56 @@
     toast('已导出 ' + fname);
   }
 
-  // 月份选择弹窗
+  // 月份选择弹窗（可任选任意月份，含无数据月份→导出空模板）
   var exportModal = $('exportModal');
-  var exportMonthList = $('exportMonthList');
+  var exportMonthGrid = $('exportMonthGrid');
+  var expYearLabel = $('expYearLabel');
+  var exportYear = +todayStr().split('-')[0]; // 默认当前年
+
   function openExportModal() {
-    var months = getMonthsWithData();
-    if (!months.length) { toast('还没有数据可导出'); return; }
-    exportMonthList.innerHTML = '';
-    months.forEach(function (k) {
-      var net = netOfMonth(k);
-      var btn = document.createElement('button');
-      btn.className = 'modal-month';
-      btn.innerHTML = '<span>' + monthLabelOf(k) + '</span>' +
-        '<span class="m-net">' + (net < 0 ? '' : '+') + fmtMoney(net) + '</span>';
-      btn.addEventListener('click', function () {
-        closeExportModal();
-        exportMonths([k]);
-      });
-      exportMonthList.appendChild(btn);
-    });
+    if (typeof XLSX === 'undefined') { toast('导出组件未加载'); return; }
+    // 默认定位到当前查看月份所在年
+    exportYear = +viewMonth.split('-')[0];
+    renderExportGrid();
     exportModal.hidden = false;
   }
   function closeExportModal() { exportModal.hidden = true; }
 
+  function renderExportGrid() {
+    var hasData = {};
+    getMonthsWithData().forEach(function (k) { hasData[k] = true; });
+    expYearLabel.textContent = exportYear + ' 年';
+    exportMonthGrid.innerHTML = '';
+    for (var m = 1; m <= 12; m++) {
+      var k = exportYear + '-' + pad2(m);
+      var btn = document.createElement('button');
+      btn.className = 'month-cell ' + (hasData[k] ? 'has-data' : 'no-data');
+      var label = m + '月';
+      if (hasData[k]) {
+        var net = netOfMonth(k);
+        label += '<span class="m-net">' + (net < 0 ? '' : '+') + fmtMoney(net) + '</span>';
+      }
+      btn.innerHTML = label;
+      (function (kk) {
+        btn.addEventListener('click', function () {
+          closeExportModal();
+          exportMonths([kk]);
+        });
+      })(k);
+      exportMonthGrid.appendChild(btn);
+    }
+  }
+
   exportBtn.addEventListener('click', openExportModal);
   $('exportMask').addEventListener('click', closeExportModal);
   $('exportCancel').addEventListener('click', closeExportModal);
+  $('expPrevYear').addEventListener('click', function () { exportYear--; renderExportGrid(); });
+  $('expNextYear').addEventListener('click', function () { exportYear++; renderExportGrid(); });
   $('exportAllBtn').addEventListener('click', function () {
     closeExportModal();
-    exportMonths(getMonthsWithData());
+    var months = getMonthsWithData();
+    if (!months.length) { toast('还没有数据可导出'); return; }
+    exportMonths(months);
   });
 
   // 窗口尺寸变化时重绘图表，避免宽度错位
