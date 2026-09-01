@@ -117,6 +117,8 @@ html, body {
 .form-row label { width: 64px; flex: none; color: var(--text-soft); font-size: 14px; }
 .form-row input {
   flex: 1;
+  min-width: 0;            /* 允许收缩，防止撑破页面 */
+  width: 100%;
   height: 44px;
   border: 1px solid var(--border);
   background: var(--card-2);
@@ -129,7 +131,7 @@ html, body {
 .form-row input:focus { border-color: var(--primary); }
 .hint { margin: -4px 0 12px; font-size: 12px; color: var(--text-soft); }
 
-.amount-wrap { flex: 1; display: flex; gap: 8px; }
+.amount-wrap { flex: 1; display: flex; gap: 8px; min-width: 0; }
 .sign-btn {
   width: 48px; flex: none;
   border: 1px solid var(--border);
@@ -139,7 +141,15 @@ html, body {
   font-size: 22px; font-weight: 700;
   cursor: pointer;
 }
-.amount-wrap input { flex: 1; }
+.amount-wrap input {
+  flex: 1;
+  min-width: 0;           /* 允许收缩，防止撑破页面 */
+  width: 100%;
+}
+/* 去掉数字输入框默认上下微调按钮，避免占用横向空间 */
+.amount-wrap input[type="number"]::-webkit-outer-spin-button,
+.amount-wrap input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+.amount-wrap input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 
 .primary-btn {
   width: 100%;
