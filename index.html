@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#4f7cff" />
+  <title>记账本 · 净收支</title>
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="brand-logo">📒</span>
+      <span class="brand-name">记账本</span>
+    </div>
+    <div class="header-actions">
+      <button id="themeBtn" class="icon-btn" title="切换主题" aria-label="切换主题">🌓</button>
+      <button id="exportBtn" class="text-btn" title="导出 Excel">导出 Excel</button>
+    </div>
+  </header>
+
+  <main class="container">
+    <!-- 汇总卡片 -->
+    <section class="summary">
+      <div class="stat-card">
+        <div class="stat-label">总余额（累计净收支）</div>
+        <div class="stat-value" id="totalBalance">0.00</div>
+        <div class="stat-sub" id="totalSub">共 0 笔</div>
+      </div>
+      <div class="stat-card accent">
+        <div class="stat-label" id="monthLabelSmall">本月合计</div>
+        <div class="stat-value" id="monthTotal">0.00</div>
+        <div class="stat-sub" id="monthSub">收 0.00 / 支 0.00</div>
+      </div>
+    </section>
+
+    <!-- 记一笔 -->
+    <section class="card form-card">
+      <h2 class="section-title">记一笔</h2>
+      <div class="form-row">
+        <label for="dateInput">日期</label>
+        <input type="date" id="dateInput" />
+      </div>
+      <div class="form-row">
+        <label for="amountInput">净金额</label>
+        <div class="amount-wrap">
+          <button type="button" id="signBtn" class="sign-btn" title="切换正负">＋</button>
+          <input type="number" id="amountInput" inputmode="decimal" step="0.01" placeholder="如 500 或 -500" />
+        </div>
+      </div>
+      <p class="hint">正数 = 净收入（收大于支），负数 = 净支出（支大于收）</p>
+      <div class="form-row">
+        <label for="noteInput">备注</label>
+        <input type="text" id="noteInput" maxlength="30" placeholder="可选，如：工资 / 吃饭 / 打车" />
+      </div>
+      <button id="saveBtn" class="primary-btn">保存记账</button>
+    </section>
+
+    <!-- 月份切换 -->
+    <section class="month-nav">
+      <button id="prevMonth" class="round-btn" aria-label="上个月">‹</button>
+      <div class="month-label" id="monthLabel">—</div>
+      <button id="nextMonth" class="round-btn" aria-label="下个月">›</button>
+      <button id="todayBtn" class="today-btn">回到本月</button>
+    </section>
+
+    <!-- 月度趋势图 -->
+    <section class="card">
+      <h2 class="section-title">月度净收支趋势</h2>
+      <div class="chart-scroll">
+        <div id="chart" class="chart"></div>
+      </div>
+      <div id="chartEmpty" class="empty-hint">暂无数据，记下第一笔就会出现趋势图～</div>
+    </section>
+
+    <!-- 本月明细 -->
+    <section class="card">
+      <h2 class="section-title">本月明细 <span id="recordsCount" class="count-badge">0</span></h2>
+      <ul id="recordList" class="record-list"></ul>
+      <div id="emptyHint" class="empty-hint">本月还没有记账，添加第一笔记账吧～</div>
+    </section>
+  </main>
+
+  <footer class="app-footer">
+    数据仅保存在本机浏览器（localStorage），不上传服务器 · 可随时导出 Excel 备份
+  </footer>
+
+  <div id="toast" class="toast"></div>
+
+  <script src="vendor/xlsx.full.min.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
